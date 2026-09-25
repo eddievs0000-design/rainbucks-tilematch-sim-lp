@@ -11,12 +11,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Tap matching blocks, clear the board, and see how earning with Rainbucks works. Play games, hit milestones, get paid real cash.",
+          "Drag tiles onto their matching pair, grow your balance, and see how earning with Rainbucks works. Play games, hit milestones, get paid real cash.",
       },
       { property: "og:title", content: "Rainbucks: Get Paid to Play Games & Surveys" },
       {
         property: "og:description",
-        content: "Tap matching blocks, clear the board, and see how earning with Rainbucks works.",
+        content: "Drag tiles onto their matching pair and see how earning with Rainbucks works.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

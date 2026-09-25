@@ -220,9 +220,14 @@ input[type="date"].reco-date:focus {
 .rg-game.bump { animation: rg-bumpS .35s ease-out 1; }
 .rg-start-overlay { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: rgba(255, 255, 255, .82); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border-radius: 16px; cursor: pointer; animation: rg-overlay-in .3s ease-out 1; }
 .rg-start-overlay.hide { animation: rg-overlay-out .25s ease-in forwards; pointer-events: none; }
-.rg-start-overlay p { margin: 0; font-weight: 700; font-size: 15px; color: #D64A9E; letter-spacing: .01em; }
+.rg-start-overlay > p { margin: 0; font-weight: 700; font-size: 15px; color: #D64A9E; letter-spacing: .01em; }
 .rg-start-icon { width: 56px; height: 56px; border-radius: 50%; background: #FF7EC8; border: 2px solid #D64A9E; box-shadow: 0 6px 18px rgba(255,126,200,.5); display: flex; align-items: center; justify-content: center; animation: rg-tap-pulse 1.4s ease-in-out infinite; }
 .rg-start-icon svg { width: 55%; height: 55%; }
+.rg-howto { background: #fff; border: 1.5px solid #F3CDE2; border-radius: 14px; padding: 12px 16px; box-shadow: 0 4px 14px rgba(214,74,158,.12); text-align: left; }
+.rg-howto h3 { margin: 0 0 6px; font-size: 13px; font-weight: 800; color: #D64A9E; text-transform: uppercase; letter-spacing: .06em; text-align: center; }
+.rg-howto ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.rg-howto li { font-size: 13px; font-weight: 600; color: #6B4226; display: flex; align-items: center; gap: 7px; }
+.rg-howto li::before { content: "🍒"; font-size: 12px; }
 @keyframes rg-overlay-in { 0% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes rg-overlay-out { 0% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes rg-tap-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }

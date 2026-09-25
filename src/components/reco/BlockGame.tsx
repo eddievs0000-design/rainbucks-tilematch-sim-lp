@@ -8,7 +8,7 @@ import rainbucksLogo from "@/assets/rainbucks-logo";
 export const ROWS = 7;
 export const COLS = 6;
 export const GOAL = 50;
-export const MATCHES_TO_END = 14;
+export const MATCHES_TO_END = 8;
 export const FINAL_BALANCE = 43.52;
 const FILLED = 26;
 
@@ -381,6 +381,14 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
               <svg viewBox="0 0 24 24" fill="#fff">
                 <path d="M9 11V4.5a1.5 1.5 0 013 0V11m0 0V3.5a1.5 1.5 0 013 0V11m0 0V5.5a1.5 1.5 0 013 0V13c0 4.4-3 8-7.5 8S4 17.4 4 13v-2.5a1.5 1.5 0 013 0V12" />
               </svg>
+            </div>
+            <div className="rg-howto">
+              <h3>How to play</h3>
+              <ul>
+                <li>Drag a tile onto its matching pair</li>
+                <li>Each match earns cash instantly</li>
+                <li>Clear 8 matches to win your reward</li>
+              </ul>
             </div>
             <p>Tap anywhere to play</p>
           </div>

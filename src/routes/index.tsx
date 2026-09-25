@@ -67,13 +67,13 @@ function Landing() {
           </div>
           <RatingPill />
           <h1>
-            Tap 2+ Matching Blocks
+            Drag Tiles to Match
             <br />
-            <span className="rg-hl">to Cash In</span>
+            <span className="rg-hl">&amp; Cash In</span>
           </h1>
           <p className="rg-sub">
-            Bigger groups = bigger payouts. That's how Rainbucks works too — play games, hit milestones, get paid real
-            cash.
+            Match pairs to grow your balance. That's how Rainbucks works too — play games, hit milestones, get paid
+            real cash.
           </p>
           <div className="rg-live">
             <span className="dot" />

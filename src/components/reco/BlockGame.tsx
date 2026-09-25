@@ -8,52 +8,35 @@ import rainbucksLogo from "@/assets/rainbucks-logo";
 export const ROWS = 7;
 export const COLS = 6;
 export const GOAL = 50;
-export const BOMB_AFTER = 5;
+export const MATCHES_TO_END = 14;
 export const FINAL_BALANCE = 43.52;
+const FILLED = 26;
 
-type TileType = "star" | "diamond" | "heart" | "coin" | "bomb";
-type Cell = { type: TileType; bomb: boolean } | null;
+type Cell = { emoji: string } | null;
 
-const TYPES: TileType[] = ["star", "diamond", "heart", "coin"];
+const EMOJIS = ["🍒", "🍌", "🍇", "🥕", "🍆", "🍏", "🍼", "🍪", "🍗", "🌰", "🍃", "🫐"];
 
-function TileIcon({ type }: { type: TileType }) {
-  switch (type) {
-    case "star":
-      return (
-        <svg viewBox="0 0 24 24" fill="#fff">
-          <path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z" />
-        </svg>
-      );
-    case "diamond":
-      return (
-        <svg viewBox="0 0 24 24" fill="#fff">
-          <path d="M12 2L2 9l10 13L22 9z" />
-        </svg>
-      );
-    case "heart":
-      return (
-        <svg viewBox="0 0 24 24" fill="#fff">
-          <path d="M12 21s-7.5-4.9-10-9.5C.5 8 2.5 4.5 6 4.5c2 0 3.5 1 4.5 2.5 1-1.5 2.5-2.5 4.5-2.5 3.5 0 5.5 3.5 4 7-2.5 4.6-10 9.5-10 9.5z" />
-        </svg>
-      );
-    case "coin":
-      return (
-        <svg viewBox="0 0 24 24" fill="#fff">
-          <circle cx="12" cy="12" r="9" fill="none" stroke="#fff" strokeWidth="2.4" />
-          <text x="12" y="16.4" textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff" fontFamily="sans-serif">
-            $
-          </text>
-        </svg>
-      );
-    case "bomb":
-      return (
-        <svg viewBox="0 0 24 24" fill="#fff">
-          <circle cx="11" cy="14" r="7" />
-          <rect x="13" y="4" width="4" height="4" rx="1" transform="rotate(30 15 6)" />
-          <path d="M17 5c1-2 3-2 4-1" stroke="#F2B93B" strokeWidth="2" fill="none" />
-        </svg>
-      );
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
+  return a;
+}
+
+function makeBoard(): Cell[][] {
+  const cells: Cell[] = [];
+  const pairCount = Math.floor(FILLED / 2);
+  for (let i = 0; i < pairCount; i++) {
+    const e = EMOJIS[i % EMOJIS.length];
+    cells.push({ emoji: e }, { emoji: e });
+  }
+  while (cells.length < ROWS * COLS) cells.push(null);
+  const shuffled = shuffle(cells);
+  const board: Cell[][] = [];
+  for (let r = 0; r < ROWS; r++) board.push(shuffled.slice(r * COLS, r * COLS + COLS));
+  return board;
 }
 
 /* ============================================================
@@ -119,54 +102,25 @@ function sfxTick() {
   osc.start(t);
   osc.stop(t + 0.08);
 }
-function sfxBoom() {
+function sfxBad() {
   const c = actx();
   if (!c) return;
   const t = c.currentTime;
-  const n = Math.floor(c.sampleRate * 0.4);
-  const buf = c.createBuffer(1, n, c.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
-  const src = c.createBufferSource();
-  src.buffer = buf;
-  const f = c.createBiquadFilter();
-  f.type = "lowpass";
-  f.frequency.setValueAtTime(1200, t);
-  f.frequency.exponentialRampToValueAtTime(120, t + 0.4);
+  const osc = c.createOscillator();
   const g = c.createGain();
-  g.gain.setValueAtTime(0.35, t);
-  g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-  src.connect(f);
-  f.connect(g);
+  osc.type = "sawtooth";
+  osc.frequency.setValueAtTime(220, t);
+  osc.frequency.exponentialRampToValueAtTime(140, t + 0.12);
+  g.gain.setValueAtTime(0.08, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+  osc.connect(g);
   g.connect(c.destination);
-  src.start(t);
-  src.stop(t + 0.4);
-  const o2 = c.createOscillator();
-  const g2 = c.createGain();
-  o2.type = "sine";
-  o2.frequency.setValueAtTime(150, t);
-  o2.frequency.exponentialRampToValueAtTime(30, t + 0.3);
-  g2.gain.setValueAtTime(0.3, t);
-  g2.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-  o2.connect(g2);
-  g2.connect(c.destination);
-  o2.start(t);
-  o2.stop(t + 0.3);
+  osc.start(t);
+  osc.stop(t + 0.12);
 }
 
-function payout(n: number) {
-  const m = n >= 6 ? 3 : n >= 4 ? 2 : 1;
-  return +(n * 0.35 * m).toFixed(2);
-}
-
-function makeBoard(): Cell[][] {
-  const b: Cell[][] = [];
-  for (let r = 0; r < ROWS; r++) {
-    const row: Cell[] = [];
-    for (let c = 0; c < COLS; c++) row.push({ type: TYPES[Math.floor(Math.random() * TYPES.length)], bomb: false });
-    b.push(row);
-  }
-  return b;
+function payout() {
+  return +(0.9 + Math.random() * 0.9).toFixed(2);
 }
 
 const STATS = [
@@ -197,15 +151,25 @@ export function RatingPill({ relative = false }: { relative?: boolean }) {
   );
 }
 
+type DragState = {
+  r: number;
+  c: number;
+  emoji: string;
+  x: number;
+  y: number;
+  over: { r: number; c: number } | null;
+};
+
 export function BlockGame({ offerUrl }: { offerUrl: string }) {
   const boardRef = useRef<Cell[][]>(makeBoard());
   const [version, setVersion] = useState(0);
-  const fallRef = useRef<Set<string>>(new Set());
+  const [drag, setDrag] = useState<DragState | null>(null);
+  const dragRef = useRef<DragState | null>(null);
   const lockedRef = useRef(false);
   const finishedRef = useRef(false);
-  const bombRef = useRef(false);
-  const clearsRef = useRef(0);
+  const matchesRef = useRef(0);
   const balanceRef = useRef(0);
+  const spawnRef = useRef<Set<string>>(new Set());
 
   const [balance, setBalance] = useState(0);
   const [balBump, setBalBump] = useState(false);
@@ -236,6 +200,11 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
     setBalance(v);
   }, []);
 
+  const setDragBoth = (d: DragState | null) => {
+    dragRef.current = d;
+    setDrag(d);
+  };
+
   const cellCenter = (r: number, c: number) => {
     const grid = gridRef.current;
     if (!grid) return { x: 0, y: 0 };
@@ -243,6 +212,16 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
     const w = rect.width / COLS;
     const h = rect.height / ROWS;
     return { x: rect.left + c * w + w / 2, y: rect.top + r * h + h / 2 };
+  };
+
+  const cellAtPoint = (x: number, y: number): { r: number; c: number } | null => {
+    const grid = gridRef.current;
+    if (!grid) return null;
+    const rect = grid.getBoundingClientRect();
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) return null;
+    const c = Math.min(COLS - 1, Math.floor(((x - rect.left) / rect.width) * COLS));
+    const r = Math.min(ROWS - 1, Math.floor(((y - rect.top) / rect.height) * ROWS));
+    return { r, c };
   };
 
   const flyCoins = (points: { x: number; y: number }[], amount: number) => {
@@ -275,53 +254,26 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
     later(() => applyBalance(+(balanceRef.current + amount).toFixed(2)), 500);
   };
 
-  const group = (r: number, c: number) => {
-    const board = boardRef.current;
-    const start = board[r][c];
-    if (!start) return [] as [number, number][];
-    const t = start.type;
-    const seen: Record<string, 1> = {};
-    const stack: [number, number][] = [[r, c]];
+  const emptyCells = (): [number, number][] => {
     const out: [number, number][] = [];
-    while (stack.length) {
-      const [rr, cc] = stack.pop()!;
-      const key = `${rr}-${cc}`;
-      if (seen[key] || rr < 0 || rr >= ROWS || cc < 0 || cc >= COLS) continue;
-      const cell = board[rr][cc];
-      if (!cell || cell.bomb || cell.type !== t) continue;
-      seen[key] = 1;
-      out.push([rr, cc]);
-      stack.push([rr - 1, cc], [rr + 1, cc], [rr, cc - 1], [rr, cc + 1]);
-    }
+    const board = boardRef.current;
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (!board[r][c]) out.push([r, c]);
     return out;
   };
 
-  const collapse = () => {
-    const board = boardRef.current;
-    const newB: Cell[][] = [];
-    const fallSet = new Set<string>();
-    for (let r = 0; r < ROWS; r++) {
-      const row: Cell[] = [];
-      for (let c = 0; c < COLS; c++) row.push(null);
-      newB.push(row);
-    }
-    for (let c = 0; c < COLS; c++) {
-      const col: Cell[] = [];
-      for (let r = 0; r < ROWS; r++) if (board[r][c]) col.push(board[r][c]);
-      const off = ROWS - col.length;
-      for (let r = 0; r < ROWS; r++) {
-        newB[r][c] = r < off ? null : col[r - off];
-        if (r >= off && off > 0) fallSet.add(`${r}-${c}`);
-      }
-    }
-    boardRef.current = newB;
-    return fallSet;
-  };
-
-  const boardEmpty = () => {
-    const board = boardRef.current;
-    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (board[r][c]) return false;
-    return true;
+  const spawnPair = () => {
+    const empties = shuffle(emptyCells());
+    if (empties.length < 2) return;
+    const e = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+    const [a, b] = empties;
+    boardRef.current[a[0]][a[1]] = { emoji: e };
+    boardRef.current[b[0]][b[1]] = { emoji: e };
+    spawnRef.current = new Set([`${a[0]}-${a[1]}`, `${b[0]}-${b[1]}`]);
+    rerender();
+    later(() => {
+      spawnRef.current = new Set();
+      rerender();
+    }, 350);
   };
 
   const finishBoard = () => {
@@ -336,39 +288,6 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
     }, 600);
   };
 
-  const explode = () => {
-    sfxBoom();
-    lockedRef.current = true;
-    const board = boardRef.current;
-    const remaining: { x: number; y: number }[] = [];
-    for (let r = 0; r < ROWS; r++)
-      for (let c = 0; c < COLS; c++) {
-        const cell = board[r][c];
-        if (cell && !cell.bomb) remaining.push(cellCenter(r, c));
-      }
-    const cells = gridRef.current?.children;
-    if (cells) for (let i = 0; i < cells.length; i++) cells[i].classList.add("clearing");
-    later(() => {
-      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) boardRef.current[r][c] = null;
-      if (remaining.length) flyCoins(remaining.slice(0, 12), 0);
-      fallRef.current = new Set();
-      rerender();
-      finishBoard();
-    }, 150);
-  };
-
-  const dropBomb = () => {
-    bombRef.current = true;
-    const c = Math.floor(Math.random() * COLS);
-    boardRef.current[0][c] = { type: "bomb", bomb: true };
-    const ticks = window.setInterval(sfxTick, 250);
-    timers.current.push(ticks);
-    later(() => {
-      window.clearInterval(ticks);
-      explode();
-    }, 1000);
-  };
-
   const startGame = () => {
     if (started) return;
     setStarted(true);
@@ -376,33 +295,61 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
     later(() => setOverlayGone(true), 260);
   };
 
-  const tap = (r: number, c: number) => {
-    const board = boardRef.current;
-    if (lockedRef.current || finishedRef.current || !board[r][c] || board[r][c]!.bomb) return;
-    const g = group(r, c);
-    if (g.length < 2) return;
-    lockedRef.current = true;
+  /* ---------------- drag handling ---------------- */
+  const onTileDown = (r: number, c: number, e: React.PointerEvent) => {
+    if (lockedRef.current || finishedRef.current || !started) return;
+    const cell = boardRef.current[r][c];
+    if (!cell) return;
     actx();
-    const idx = g.map(([rr, cc]) => rr * COLS + cc);
+    sfxTick();
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    setDragBoth({ r, c, emoji: cell.emoji, x: e.clientX, y: e.clientY, over: null });
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const over = cellAtPoint(e.clientX, e.clientY);
+    const validOver =
+      over && !(over.r === d.r && over.c === d.c) && boardRef.current[over.r][over.c]?.emoji === d.emoji
+        ? over
+        : null;
+    setDragBoth({ ...d, x: e.clientX, y: e.clientY, over: validOver });
+  };
+
+  const onPointerUp = () => {
+    const d = dragRef.current;
+    if (!d) return;
+    setDragBoth(null);
+    if (lockedRef.current || finishedRef.current) return;
+
+    if (!d.over) {
+      if (cellAtPoint(d.x, d.y)) sfxBad();
+      return;
+    }
+
+    const { r: r2, c: c2 } = d.over;
+    lockedRef.current = true;
+    const pts = [cellCenter(d.r, d.c), cellCenter(r2, c2)];
+    const amt = payout();
     const cells = gridRef.current?.children;
+    const idx = [d.r * COLS + d.c, r2 * COLS + c2];
     if (cells) idx.forEach((i) => cells[i]?.classList.add("selected"));
-    const pts = g.map(([rr, cc]) => cellCenter(rr, cc));
-    const amt = payout(g.length);
     later(() => {
       sfxWhoosh();
       if (cells) idx.forEach((i) => cells[i]?.classList.add("clearing"));
       later(() => {
-        g.forEach(([rr, cc]) => {
-          boardRef.current[rr][cc] = null;
-        });
-        clearsRef.current++;
-        const fallSet = collapse();
+        boardRef.current[d.r][d.c] = null;
+        boardRef.current[r2][c2] = null;
+        matchesRef.current++;
         flyCoins(pts, amt);
-        if (clearsRef.current >= BOMB_AFTER && !bombRef.current) dropBomb();
-        fallRef.current = fallSet;
         rerender();
         lockedRef.current = false;
-        if (boardEmpty() && !bombRef.current) finishBoard();
+        if (matchesRef.current >= MATCHES_TO_END) {
+          finishBoard();
+        } else {
+          later(spawnPair, 420);
+        }
       }, 180);
     }, 120);
   };
@@ -438,26 +385,44 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
             <p>Tap anywhere to play</p>
           </div>
         )}
-        <div className="rg-grid" ref={gridRef}>
+        <div
+          className="rg-grid"
+          ref={gridRef}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+        >
           {board.flatMap((row, r) =>
             row.map((cell, c) => {
               const key = `${version}-${r}-${c}`;
               if (!cell) return <div key={key} className="rg-cell empty" />;
-              const falling = fallRef.current.has(`${r}-${c}`);
+              const isSrc = drag && drag.r === r && drag.c === c;
+              const isTarget = drag?.over && drag.over.r === r && drag.over.c === c;
+              const spawning = spawnRef.current.has(`${r}-${c}`);
               return (
                 <div
                   key={key}
-                  className={`rg-cell ${cell.bomb ? "t-bomb bomb" : `t-${cell.type}`}${falling ? " falling" : ""}`}
-                  onPointerDown={() => tap(r, c)}
+                  className={`rg-cell tile${isSrc ? " drag-src" : ""}${isTarget ? " match-target" : ""}${spawning ? " spawning" : ""}`}
+                  onPointerDown={(e) => onTileDown(r, c, e)}
                 >
-                  <TileIcon type={cell.bomb ? "bomb" : cell.type} />
+                  <span className="rg-emoji">{cell.emoji}</span>
                 </div>
               );
             }),
           )}
         </div>
-        <p className="rg-hint">Tap groups of 2 or more matching blocks</p>
+        <p className="rg-hint">Drag a tile onto its matching tile to clear the pair</p>
       </div>
+
+      {/* ================= DRAG GHOST ================= */}
+      {drag && (
+        <div
+          className="rg-drag-ghost"
+          style={{ transform: `translate(${drag.x}px,${drag.y}px) translate(-50%,-50%)` }}
+        >
+          <span className="rg-emoji">{drag.emoji}</span>
+        </div>
+      )}
 
       {/* ================= BOARD CLEARED MODAL ================= */}
       {modal && (

@@ -7,10 +7,26 @@ import rainbucksLogo from "@/assets/rainbucks-logo";
    ============================================================ */
 export const ROWS = 7;
 export const COLS = 6;
-export const GOAL = 50;
+export const GOAL = 5;
 export const MATCHES_TO_END = 8;
-export const FINAL_BALANCE = 43.52;
+export const FINAL_BALANCE = 4.1;
 const FILLED = 26;
+
+/* Scripted, believable payouts — motion, not a jackpot */
+const PAYOUTS = [0.12, 0.18, 1.1, 0.45, 0.55, 0.45, 0.6, 0.65];
+const MATCH_MESSAGES: { lines: string[]; kind?: "milestone" }[] = [
+  { lines: ["+$0.12 added"] },
+  { lines: ["+$0.18 · Balance $0.30"] },
+  { lines: ["You're at $1.40. Keep going."] },
+  { lines: ["+$0.45 added"] },
+  { lines: ["+$0.55 added"] },
+  {
+    lines: ["Milestone hit · +$0.45", "Balance $2.85", "Nice. That's how payouts start."],
+    kind: "milestone",
+  },
+  { lines: ["+$0.60 added"] },
+  { lines: ["+$0.65 added"] },
+];
 
 type Cell = { emoji: string } | null;
 
@@ -119,9 +135,6 @@ function sfxBad() {
   osc.stop(t + 0.12);
 }
 
-function payout() {
-  return +(0.9 + Math.random() * 0.9).toFixed(2);
-}
 
 const STATS = [
   { v: "255+", k: "Games" },
@@ -179,6 +192,8 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
   const [earned, setEarned] = useState(0);
   const [started, setStarted] = useState(false);
   const [overlayGone, setOverlayGone] = useState(false);
+  const [status, setStatus] = useState<{ lines: string[]; kind?: "milestone" | "bad" } | null>(null);
+  const [statusKey, setStatusKey] = useState(0);
 
   const gridRef = useRef<HTMLDivElement | null>(null);
   const balCardRef = useRef<HTMLDivElement | null>(null);
@@ -194,6 +209,17 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
   }, []);
 
   const rerender = useCallback(() => setVersion((v) => v + 1), []);
+
+  const showStatus = (lines: string[], kind?: "milestone" | "bad") => {
+    setStatus({ lines, kind });
+    setStatusKey((k) => k + 1);
+  };
+
+  useEffect(() => {
+    const onStart = () => startGame();
+    window.addEventListener("rg:start-demo", onStart);
+    return () => window.removeEventListener("rg:start-demo", onStart);
+  });
 
   const applyBalance = useCallback((v: number) => {
     balanceRef.current = v;
@@ -324,14 +350,17 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
     if (lockedRef.current || finishedRef.current) return;
 
     if (!d.over) {
-      if (cellAtPoint(d.x, d.y)) sfxBad();
+      if (cellAtPoint(d.x, d.y)) {
+        sfxBad();
+        showStatus(["No pair that time. Try another tile."], "bad");
+      }
       return;
     }
 
     const { r: r2, c: c2 } = d.over;
     lockedRef.current = true;
     const pts = [cellCenter(d.r, d.c), cellCenter(r2, c2)];
-    const amt = payout();
+    const amt = PAYOUTS[Math.min(matchesRef.current, PAYOUTS.length - 1)];
     const cells = gridRef.current?.children;
     const idx = [d.r * COLS + d.c, r2 * COLS + c2];
     if (cells) idx.forEach((i) => cells[i]?.classList.add("selected"));
@@ -345,6 +374,8 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
         flyCoins(pts, amt);
         rerender();
         lockedRef.current = false;
+        const msg = MATCH_MESSAGES[matchesRef.current - 1];
+        if (msg) showStatus(msg.lines, msg.kind);
         if (matchesRef.current >= MATCHES_TO_END) {
           finishBoard();
         } else {
@@ -352,6 +383,21 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
         }
       }, 180);
     }, 120);
+  };
+
+  const replay = () => {
+    boardRef.current = makeBoard();
+    matchesRef.current = 0;
+    finishedRef.current = false;
+    lockedRef.current = false;
+    spawnRef.current = new Set();
+    applyBalance(0);
+    setEarned(0);
+    setStatus(null);
+    setModalVis(false);
+    setModal(false);
+    document.body.style.overflow = "";
+    rerender();
   };
 
   const closeAndClaim = () => {
@@ -370,11 +416,11 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
         <div className="rg-bar">
           <div className="rg-bar-fill" style={{ width: `${pct}%` }} />
         </div>
-        <p className="rg-goal">GOAL $50 — {pct.toFixed(0)}%</p>
+        <p className="rg-goal">GOAL $5 — {pct.toFixed(0)}%</p>
       </div>
 
       {/* ================= GAME ================= */}
-      <div className={`rg-game${gameBump ? " bump" : ""}`}>
+      <div id="demo-game" className={`rg-game${gameBump ? " bump" : ""}`}>
         {!overlayGone && (
           <div className={`rg-start-overlay${started ? " hide" : ""}`} onPointerDown={startGame}>
             <div className="rg-start-icon">
@@ -385,8 +431,8 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
             <div className="rg-howto">
               <h3>How to play</h3>
               <ul>
+                <li>Match 2 tiles to start your balance</li>
                 <li>Drag a tile onto its matching pair</li>
-                <li>Each match earns cash instantly</li>
                 <li>Clear 8 matches to win your reward</li>
               </ul>
             </div>
@@ -419,7 +465,13 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
             }),
           )}
         </div>
-        <p className="rg-hint">Drag a tile onto its matching tile to clear the pair</p>
+        <p key={statusKey} className={`rg-status${status?.kind ? ` ${status.kind}` : ""}`}>
+          {(status?.lines ?? ["Drag a tile onto its matching tile to clear the pair"]).map((l, i) => (
+            <span className="line" key={i}>
+              {l}
+            </span>
+          ))}
+        </p>
       </div>
 
       {/* ================= DRAG GHOST ================= */}
@@ -442,13 +494,19 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
             </div>
             <RatingPill relative />
             <div style={{ position: "relative", fontSize: 36 }}>🎉</div>
-            <h2>Board Cleared!</h2>
-            <p className="rg-earned-lbl">You've earned</p>
+            <h2>You just earned</h2>
             <p className="rg-earned">${earned.toFixed(2)}</p>
+            <p className="rg-earned-lbl">in this preview</p>
+            <p className="rg-modal-sub">
+              On Rainbucks, the same loop pays real cash: play games, hit milestones, cash out.
+            </p>
             <a className="rg-claim" href={offerUrl} onClick={closeAndClaim}>
-              Claim Your Reward
+              Start Earning for Real
             </a>
-            <StatsRow />
+            <button className="rg-replay" onClick={replay}>
+              Keep Playing the Demo
+            </button>
+            <p className="rg-note">This is a preview. Real payouts happen in the app.</p>
           </div>
         </div>
       )}

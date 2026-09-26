@@ -11,12 +11,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Drag tiles onto their matching pair, grow your balance, and see how earning with Rainbucks works. Play games, hit milestones, get paid real cash.",
+          "See how much you could earn. Play the mini-game — that's Rainbucks in 10 seconds: games → milestones → cash.",
       },
-      { property: "og:title", content: "Rainbucks: Get Paid to Play Games & Surveys" },
+      { property: "og:title", content: "Rainbucks: See How Much You Could Earn" },
       {
         property: "og:description",
-        content: "Drag tiles onto their matching pair and see how earning with Rainbucks works.",
+        content: "Play the mini-game. That's Rainbucks in 10 seconds: games → milestones → cash.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -67,21 +67,26 @@ function Landing() {
           </div>
           <RatingPill />
           <h1>
-            Drag Tiles to Match
+            See how much you
             <br />
-            <span className="rg-hl">&amp; Cash In</span>
+            could <span className="rg-hl">earn</span>
           </h1>
           <p className="rg-sub">
-            Match pairs to grow your balance. That's how Rainbucks works too — play games, hit milestones, get paid
-            real cash.
+            Play the mini-game. That's Rainbucks in 10 seconds: games → milestones → cash.
           </p>
           <div className="rg-live">
             <span className="dot" />
-            <span>1,847 people earning right now</span>
+            <span>1,847 people cashing out right now</span>
           </div>
-          <a className="rg-join" href={OFFER_URL}>
-            Join Now
-          </a>
+          <button
+            className="rg-join"
+            onClick={() => {
+              document.getElementById("demo-game")?.scrollIntoView({ behavior: "smooth", block: "center" });
+              window.dispatchEvent(new CustomEvent("rg:start-demo"));
+            }}
+          >
+            Play the Demo
+          </button>
         </div>
 
         {/* ================= BALANCE + GAME + MODAL ================= */}

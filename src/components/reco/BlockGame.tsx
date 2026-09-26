@@ -7,10 +7,26 @@ import rainbucksLogo from "@/assets/rainbucks-logo";
    ============================================================ */
 export const ROWS = 7;
 export const COLS = 6;
-export const GOAL = 50;
+export const GOAL = 5;
 export const MATCHES_TO_END = 8;
-export const FINAL_BALANCE = 43.52;
+export const FINAL_BALANCE = 4.1;
 const FILLED = 26;
+
+/* Scripted, believable payouts — motion, not a jackpot */
+const PAYOUTS = [0.12, 0.18, 1.1, 0.45, 0.55, 0.45, 0.6, 0.65];
+const MATCH_MESSAGES: { lines: string[]; kind?: "milestone" }[] = [
+  { lines: ["+$0.12 added"] },
+  { lines: ["+$0.18 · Balance $0.30"] },
+  { lines: ["You're at $1.40. Keep going."] },
+  { lines: ["+$0.45 added"] },
+  { lines: ["+$0.55 added"] },
+  {
+    lines: ["Milestone hit · +$0.45", "Balance $2.85", "Nice. That's how payouts start."],
+    kind: "milestone",
+  },
+  { lines: ["+$0.60 added"] },
+  { lines: ["+$0.65 added"] },
+];
 
 type Cell = { emoji: string } | null;
 

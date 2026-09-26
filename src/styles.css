@@ -302,3 +302,18 @@ input[type="date"].reco-date:focus {
 .rg-modal .rg-stats { margin-top: 4px; background: #FFF6FB; }
 .rg-logo-sm { position: relative; width: 170px; max-width: 80%; }
 .rg-logo-sm img { width: 100%; height: auto; object-fit: contain; display: block; }
+
+/* ================= STATUS / MICROCOPY ================= */
+.rg-join { border: none; cursor: pointer; }
+.rg-status { text-align: center; min-height: 38px; margin-top: 10px; font-size: 13px; font-weight: 600; color: #8A7A87; display: flex; flex-direction: column; justify-content: center; gap: 2px; animation: rg-status-in .25s ease-out 1; }
+.rg-status .line { display: block; }
+.rg-status.milestone { color: #E0439B; }
+.rg-status.milestone .line:first-child { font-weight: 800; }
+.rg-status.bad { color: #B0688C; }
+@keyframes rg-status-in { 0% { opacity: 0; transform: translateY(4px); } 100% { opacity: 1; transform: none; } }
+
+/* ================= END SCREEN ================= */
+.rg-modal-sub { position: relative; color: #6F6470; font-size: 14px; line-height: 1.55; }
+.rg-replay { position: relative; width: 100%; border: 1.5px solid #F3CDE2; background: #FFF6FB; border-radius: 12px; padding: 12px; font-size: 15px; font-weight: 700; font-family: var(--font-display); color: #D64A9E; cursor: pointer; transition: transform .15s ease; }
+.rg-replay:active { transform: scale(.98); }
+.rg-note { position: relative; color: #8A7A87; font-size: 11px; }

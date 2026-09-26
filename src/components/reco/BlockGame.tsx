@@ -360,28 +360,7 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
     const { r: r2, c: c2 } = d.over;
     lockedRef.current = true;
     const pts = [cellCenter(d.r, d.c), cellCenter(r2, c2)];
-    const amt = payout();
-    const cells = gridRef.current?.children;
-    const idx = [d.r * COLS + d.c, r2 * COLS + c2];
-    if (cells) idx.forEach((i) => cells[i]?.classList.add("selected"));
-    later(() => {
-      sfxWhoosh();
-      if (cells) idx.forEach((i) => cells[i]?.classList.add("clearing"));
-      later(() => {
-        boardRef.current[d.r][d.c] = null;
-        boardRef.current[r2][c2] = null;
-        matchesRef.current++;
-        flyCoins(pts, amt);
-        rerender();
-        lockedRef.current = false;
-        if (matchesRef.current >= MATCHES_TO_END) {
-          finishBoard();
-        } else {
-          later(spawnPair, 420);
-        }
-      }, 180);
-    }, 120);
-  };
+    const amt = PAYOUTS[Math.min(matchesRef.current, PAYOUTS.length - 1)];
 
   const closeAndClaim = () => {
     document.body.style.overflow = "";

@@ -192,6 +192,8 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
   const [earned, setEarned] = useState(0);
   const [started, setStarted] = useState(false);
   const [overlayGone, setOverlayGone] = useState(false);
+  const [status, setStatus] = useState<{ lines: string[]; kind?: "milestone" | "bad" } | null>(null);
+  const [statusKey, setStatusKey] = useState(0);
 
   const gridRef = useRef<HTMLDivElement | null>(null);
   const balCardRef = useRef<HTMLDivElement | null>(null);

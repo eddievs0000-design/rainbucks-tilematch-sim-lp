@@ -350,7 +350,10 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
     if (lockedRef.current || finishedRef.current) return;
 
     if (!d.over) {
-      if (cellAtPoint(d.x, d.y)) sfxBad();
+      if (cellAtPoint(d.x, d.y)) {
+        sfxBad();
+        showStatus(["No pair that time. Try another tile."], "bad");
+      }
       return;
     }
 

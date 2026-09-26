@@ -416,11 +416,11 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
         <div className="rg-bar">
           <div className="rg-bar-fill" style={{ width: `${pct}%` }} />
         </div>
-        <p className="rg-goal">GOAL $50 — {pct.toFixed(0)}%</p>
+        <p className="rg-goal">GOAL $5 — {pct.toFixed(0)}%</p>
       </div>
 
       {/* ================= GAME ================= */}
-      <div className={`rg-game${gameBump ? " bump" : ""}`}>
+      <div id="demo-game" className={`rg-game${gameBump ? " bump" : ""}`}>
         {!overlayGone && (
           <div className={`rg-start-overlay${started ? " hide" : ""}`} onPointerDown={startGame}>
             <div className="rg-start-icon">
@@ -431,8 +431,8 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
             <div className="rg-howto">
               <h3>How to play</h3>
               <ul>
+                <li>Match 2 tiles to start your balance</li>
                 <li>Drag a tile onto its matching pair</li>
-                <li>Each match earns cash instantly</li>
                 <li>Clear 8 matches to win your reward</li>
               </ul>
             </div>
@@ -465,7 +465,13 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
             }),
           )}
         </div>
-        <p className="rg-hint">Drag a tile onto its matching tile to clear the pair</p>
+        <p key={statusKey} className={`rg-status${status?.kind ? ` ${status.kind}` : ""}`}>
+          {(status?.lines ?? ["Drag a tile onto its matching tile to clear the pair"]).map((l, i) => (
+            <span className="line" key={i}>
+              {l}
+            </span>
+          ))}
+        </p>
       </div>
 
       {/* ================= DRAG GHOST ================= */}
@@ -488,13 +494,19 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
             </div>
             <RatingPill relative />
             <div style={{ position: "relative", fontSize: 36 }}>🎉</div>
-            <h2>Board Cleared!</h2>
-            <p className="rg-earned-lbl">You've earned</p>
+            <h2>You just earned</h2>
             <p className="rg-earned">${earned.toFixed(2)}</p>
+            <p className="rg-earned-lbl">in this preview</p>
+            <p className="rg-modal-sub">
+              On Rainbucks, the same loop pays real cash: play games, hit milestones, cash out.
+            </p>
             <a className="rg-claim" href={offerUrl} onClick={closeAndClaim}>
-              Claim Your Reward
+              Start Earning for Real
             </a>
-            <StatsRow />
+            <button className="rg-replay" onClick={replay}>
+              Keep Playing the Demo
+            </button>
+            <p className="rg-note">This is a preview. Real payouts happen in the app.</p>
           </div>
         </div>
       )}

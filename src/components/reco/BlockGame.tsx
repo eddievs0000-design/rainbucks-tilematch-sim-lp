@@ -135,9 +135,6 @@ function sfxBad() {
   osc.stop(t + 0.12);
 }
 
-function payout() {
-  return +(0.9 + Math.random() * 0.9).toFixed(2);
-}
 
 const STATS = [
   { v: "255+", k: "Games" },

@@ -210,6 +210,17 @@ export function BlockGame({ offerUrl }: { offerUrl: string }) {
 
   const rerender = useCallback(() => setVersion((v) => v + 1), []);
 
+  const showStatus = (lines: string[], kind?: "milestone" | "bad") => {
+    setStatus({ lines, kind });
+    setStatusKey((k) => k + 1);
+  };
+
+  useEffect(() => {
+    const onStart = () => startGame();
+    window.addEventListener("rg:start-demo", onStart);
+    return () => window.removeEventListener("rg:start-demo", onStart);
+  });
+
   const applyBalance = useCallback((v: number) => {
     balanceRef.current = v;
     setBalance(v);

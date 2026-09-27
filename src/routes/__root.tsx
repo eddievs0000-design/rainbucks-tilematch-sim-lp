@@ -96,6 +96,8 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        {/* ClickFlare tag gate — loads the tag only outside consent regions */}
+        <script type="text/javascript" src="/clickflare-gate.js" />
       </head>
       <body>
         {children}
